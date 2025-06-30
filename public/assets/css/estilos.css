@@ -1,0 +1,128 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #e5e5e5;
+}
+
+.main-header {
+  background-color: #e5ecfe;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.logo-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  color: #1a3fad;
+}
+
+.logo-header img {
+  width: 28px;
+  height: 28px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.login-icon {
+  font-size: 28px;
+  color: #1a3fad;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-icon:hover {
+  color: #2a65f7;
+}
+
+.logout-button {
+  background-color: transparent;
+  border: none;
+  color: #1a3fad;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 20px;
+  transition: color 0.3s ease;
+}
+
+.logout-button:hover {
+  color: #2a65f7;
+}
+
+/* CONTENIDO PRINCIPAL */
+.main-content {
+  padding: 40px;
+  text-align: center;
+}
+
+.main-content h1 {
+  font-size: 28px;
+  color: #1a3fad;
+  margin-bottom: 30px;
+}
+
+/* CUADROS DE TRABAJO */
+.job-grid {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.job-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  width: 260px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-5px);
+}
+
+.job-card i {
+  font-size: 40px;
+  color: #2a65f7;
+  margin-bottom: 15px;
+}
+
+.job-card h2 {
+  color: #1a3fad;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.job-card p {
+  color: #333;
+  font-size: 15px;
+}
+
+.nomSistema{
+  color: #001b6c;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.job-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

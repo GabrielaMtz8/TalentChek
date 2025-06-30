@@ -1,0 +1,104 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #e5e5e5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  display: flex;
+  background-color: #e5ecfe;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  gap: 40px;
+}
+
+.login-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 300px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  color: #1a3fad;
+  margin-bottom: 10px;
+}
+
+.logo img {
+  width: 24px;
+  height: 24px;
+}
+
+.nomSistema{
+  color: #001b6c;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #1a3fad;
+}
+
+form input,
+form button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+form button {
+  background-color: #2a65f7;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #1a47d4;
+}
+
+.illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.illustration img {
+  width: 160px;
+  height: auto;
+}
+
+.login-inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.login-inline p {
+  margin: 0;
+}
+
+.login-inline a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-inline a:hover {
+  text-decoration: underline;
+}
