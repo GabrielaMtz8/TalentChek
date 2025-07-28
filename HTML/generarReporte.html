@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="lib/img/logoredondo.png">
+  <title>Generar Reporte</title>
+  <link rel="stylesheet" href="lib/css/generarReporte.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="main-layout">
+    <header class="main-header">
+      <a href="perfilReclutador.html" style="text-decoration: none; color: inherit;">
+        <div class="header-left">
+          <img src="lib/img/logo.jpg" alt="Logo" />
+          <span class="title">TalentCheck</span>
+        </div>
+      </a>
+      <div class="user-menu">
+        <span class="user-icon" onclick="toggleMenu()">👤</span>
+        <div id="dropdownMenu" class="dropdown">
+          <a href="#" id="logoutBtn">Cerrar sesión</a>
+          <a href="perfilRe.html">Ver Perfil</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <nav class="nav">
+          <a href="perfilReclutador.html"><button class="nav-btn"><i class="fas fa-home"></i></button></a>
+          <a href="candidatos.html"><button class="nav-btn"><i class="fas fa-user-friends"></i></button></a>
+          <a href="generarReporte.html"><button class="nav-btn"><i class="fas fa-chart-bar"></i></button></a>
+          <a href="entrevista.html"><button class="nav-btn"><i class="fas fa-comments"></i></button></a>
+        </nav>
+      </aside>
+
+      <main class="dashboard">
+        <h1>Generar Reporte</h1><br>
+        <form class="reporte-form">
+          <label for="tipo">Tipo de reporte:</label>
+          <select id="tipo" required>
+            <option value="">Selecciona una opción</option>
+            <option value="Proceso de Candidatos">Proceso de Candidatos</option>
+            <option value="Examen de Conocimiento">Examen de Conocimiento</option>
+            <option value="Examen Psicométrico">Examen Psicométrico</option>
+          </select>
+
+          <label for="fecha-inicio">Fecha de inicio:</label>
+          <input type="date" id="fecha-inicio" required />
+
+          <label for="fecha-fin">Fecha de fin:</label>
+          <input type="date" id="fecha-fin" required />
+
+          <label for="formato">Formato de salida:</label>
+          <select id="formato" required>
+            <option value="pdf">PDF</option>
+            <option value="excel">Excel</option>
+          </select>
+
+          <button type="submit">Generar Reporte</button>
+        </form>
+      </main>
+    </div>
+
+  <script>
+    // Mostrar / ocultar menú usuario
+    function toggleMenu() {
+      const menu = document.getElementById('dropdownMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Confirmar cierre de sesión
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      const seguro = confirm('¿Está seguro que desea cerrar sesión?');
+      if (seguro) {
+
+        window.location.href = 'inicioSesion.html'; 
+      } else {
+        // Si cancela, oculta el menú
+        document.getElementById('dropdownMenu').style.display = 'none';
+      }
+    });
+
+    // Cerrar menú si clic fuera
+    window.addEventListener('click', function(event) {
+      const menu = document.getElementById('dropdownMenu');
+      const userIcon = document.querySelector('.user-icon');
+      if (!menu.contains(event.target) && !userIcon.contains(event.target)) {
+        menu.style.display = 'none';
+      }
+    });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      child
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_I3bIIk0nfGvuDSK0nZ_JcI7ywTP_Rd8",
+      authDomain: "talentchek-t.firebaseapp.com",
+      databaseURL: "https://talentchek-t-default-rtdb.firebaseio.com/",
+      projectId: "talentchek-t",
+      storageBucket: "talentchek-t.appspot.com",
+      messagingSenderId: "546382065526",
+      appId: "1:546382065526:web:249deb0e90ff9b358bd457"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.querySelector(".reporte-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const tipo = document.getElementById("tipo").value;
+      const formato = document.getElementById("formato").value;
+      const fechaInicio = document.getElementById("fecha-inicio").value;
+      const fechaFin = document.getElementById("fecha-fin").value;
+
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, `candidatos`));
+
+      if (!snapshot.exists()) {
+        alert("No hay candidatos registrados.");
+        return;
+      }
+
+      const candidatos = Object.values(snapshot.val());
+
+      let datos = candidatos.map((c) => {
+        let base = {
+          nombre: c.nombre || "",
+          correo: c.correo || "",
+          telefono: c.telefono || "",
+          fechaInicio,
+          fechaFin
+        };
+
+        if (tipo === "Proceso de Candidatos") {
+          base.proceso = c.proceso || {
+            cv: "", entrevista: "", examen_conocimiento: "", examen_psicometrico: ""
+          };
+        }
+
+        if (tipo === "Examen de Conocimiento") {
+          base.aciertosexamcono = c.aciertosexamcono || 0;
+          base.respuestasexamcono = c.respuestasexamcono || {};
+        }
+
+        if (tipo === "Examen Psicométrico") {
+          base.aciertosexampsico = c.aciertosexampsico || 0;
+          base.respuestasexampsico = c.respuestasexampsico || {};
+        }
+
+        return base;
+      });
+
+      if (formato === "pdf") await generarPDFCompleto(datos, tipo);
+      else generarExcelCompleto(datos, tipo);
+    });
+
+    function cargarImagenBase64(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/jpeg"));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function generarPDFCompleto(data, tipo) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let y = 10;
+
+      const imgBase64 = await cargarImagenBase64("lib/img/logo.jpg");
+      const logo = new Image();
+      logo.src = imgBase64;
+
+      await new Promise((resolve) => {
+        logo.onload = () => {
+          const logoWidth = 20;
+          const aspectRatio = logo.height / logo.width;
+          const logoHeight = logoWidth * aspectRatio;
+
+          doc.addImage(imgBase64, "JPEG", 10, y, logoWidth, logoHeight);
+
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Reporte ${tipo}`, pageWidth / 2, y + 10, { align: "center", baseline: "middle" });
+
+          y += logoHeight + 10;
+          resolve();
+        };
+      });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Fecha de Inicio: ${data[0]?.fechaInicio || ""}`, 10, y); y += 7;
+      doc.text(`Fecha de Fin: ${data[0]?.fechaFin || ""}`, 10, y); y += 10;
+
+      data.forEach((c, i) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`${i + 1}. Nombre: ${c.nombre}`, 10, y); y += 7;
+        doc.setFont("helvetica", "normal");
+        doc.text(`Correo: ${c.correo}`, 10, y); y += 7;
+        doc.text(`Teléfono: ${c.telefono}`, 10, y); y += 7;
+
+        if (c.proceso) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Proceso:", 10, y); y += 7;
+          doc.setFont("helvetica", "normal");
+          doc.text(` - CV: ${c.proceso.cv}`, 15, y); y += 7;
+          doc.text(` - Entrevista: ${c.proceso.entrevista}`, 15, y); y += 7;
+          doc.text(` - Examen Conocimiento: ${c.proceso.examen_conocimiento}`, 15, y); y += 7;
+          doc.text(` - Examen Psicométrico: ${c.proceso.examen_psicometrico}`, 15, y); y += 7;
+        }
+
+        if (c.aciertosexamcono !== undefined) {
+          doc.setFont("helvetica", "bold");
+          doc.text(`Aciertos Examen Conocimiento: ${c.aciertosexamcono}`, 10, y); y += 7;
+          doc.setFont("helvetica", "normal");
+          Object.entries(c.respuestasexamcono).forEach(([q, r]) => {
+            doc.text(`  ${q}: ${r}`, 15, y); y += 7;
+          });
+        }
+
+        if (c.aciertosexampsico !== undefined) {
+          doc.setFont("helvetica", "bold");
+          doc.text(`Aciertos Examen Psicométrico: ${c.aciertosexampsico}`, 10, y); y += 7;
+          doc.setFont("helvetica", "normal");
+          Object.entries(c.respuestasexampsico).forEach(([p, r]) => {
+            doc.text(`  ${p}: ${r}`, 15, y); y += 7;
+          });
+        }
+
+        y += 10;
+      });
+
+      doc.save(`reporte_${tipo}.pdf`);
+    }
+
+    function generarExcelCompleto(data, tipo) {
+      const encabezado = ["Nombre", "Correo", "Teléfono", "Fecha Inicio", "Fecha Fin"];
+
+      if (tipo === "Proceso de Candidatos") {
+        encabezado.push("CV", "Entrevista", "Examen Conocimiento", "Examen Psicométrico");
+      }
+      if (tipo === "Examen de Conocimiento") {
+        encabezado.push("Aciertos Conocimiento");
+        for (let i = 1; i <= 10; i++) encabezado.push(`q${i}`);
+      }
+      if (tipo === "Examen Psicométrico") {
+        encabezado.push("Aciertos Psicométrico");
+        for (let i = 1; i <= 7; i++) encabezado.push(`p${i}`);
+      }
+
+      const wsData = [
+        [`Reporte ${tipo}`],  
+        [],
+        encabezado
+      ];
+
+      data.forEach(c => {
+        const fila = [
+          c.nombre,
+          c.correo,
+          c.telefono,
+          c.fechaInicio,
+          c.fechaFin
+        ];
+
+        if (c.proceso) {
+          fila.push(
+            c.proceso.cv || "",
+            c.proceso.entrevista || "",
+            c.proceso.examen_conocimiento || "",
+            c.proceso.examen_psicometrico || ""
+          );
+        }
+
+        if (c.aciertosexamcono !== undefined) {
+          fila.push(c.aciertosexamcono);
+          for (let i = 1; i <= 10; i++) fila.push(c.respuestasexamcono[`q${i}`] || "");
+        }
+
+        if (c.aciertosexampsico !== undefined) {
+          fila.push(c.aciertosexampsico);
+          for (let i = 1; i <= 7; i++) fila.push(c.respuestasexampsico[`p${i}`] || "");
+        }
+
+        wsData.push(fila);
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+      XLSX.writeFile(wb, `reporte_${tipo}.xlsx`);
+    }
+  </script>
+
+</body>
+</html>

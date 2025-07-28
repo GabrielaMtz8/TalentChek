@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="lib/img/logoredondo.png">
+  <title>Ver Perfil</title>
+  <link rel="stylesheet" href="lib/css/perfil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f8ff;
+      margin: 0;
+    }
+
+    .main-header {
+      background-color: #fff;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: #1a3fad;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .header-left img {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .profile-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .profile-container h1 {
+      color: #1a3fad;
+      margin-bottom: 25px;
+    }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid #1a3fad;
+      object-fit: cover;
+    }
+
+    .profile-info {
+      text-align: left;
+      width: 100%;
+    }
+
+    .profile-info p {
+      font-size: 16px;
+      margin: 8px 0;
+    }
+
+    .user-menu {
+      position: relative;
+      user-select: none;
+    }
+
+    .user-icon {
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      width: 140px;
+      z-index: 1000;
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+
+    .dropdown a:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown a:hover {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <a href="perfilAdm.html" class="header-left">
+      <img src="lib/img/logo.jpg" alt="Logo" />
+      <span class="title">TalentCheck</span>
+    </a>
+    <div class="user-menu">
+      <span class="user-icon" onclick="toggleMenu()">👤</span>
+      <div id="dropdownMenu" class="dropdown">
+        <a href="#" id="logoutBtn">Cerrar sesión</a>
+        <a href="perfilAdministrador.html">Ver Perfil</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-container">
+    <h1>Perfil del Administrador</h1>
+    <div class="profile-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Foto de perfil" class="profile-avatar">
+      <div class="profile-info">
+        <p><strong>Nombre Completo:</strong> <span id="nombreCandidato">Cargando...</span></p>
+        <p><strong>Correo:</strong> <span id="correoCandidato">Cargando...</span></p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      get
+    } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_I3bIIk0nfGvuDSK0nZ_JcI7ywTP_Rd8",
+      authDomain: "talentchek-t.firebaseapp.com",
+      databaseURL: "https://talentchek-t-default-rtdb.firebaseio.com",
+      projectId: "talentchek-t",
+      storageBucket: "talentchek-t.appspot.com",
+      messagingSenderId: "546382065526",
+      appId: "1:546382065526:web:249deb0e90ff9b358bd457",
+      measurementId: "G-WCG5D1N4ZJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const uid = user.uid;
+        try {
+          const snapshot = await get(ref(database, 'administradores/' + uid));
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('nombreCandidato').textContent = data.nombre || 'Sin nombre';
+            document.getElementById('correoCandidato').textContent = data.correo || 'Sin correo';
+          } else {
+            alert("No se encontraron datos del administrador.");
+          }
+        } catch (error) {
+          console.error("Error al obtener los datos:", error);
+        }
+      }
+    });
+
+    // Menú desplegable
+    window.toggleMenu = function () {
+      const menu = document.getElementById('dropdownMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    };
+
+    // Cerrar sesión
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm("¿Deseas cerrar sesión?")) {
+        signOut(auth).then(() => {
+          window.location.href = "inicioSesion.html";
+        }).catch((error) => {
+          alert("Error al cerrar sesión: " + error.message);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

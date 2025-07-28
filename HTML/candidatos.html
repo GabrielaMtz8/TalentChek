@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="lib/img/logoredondo.png">
+  <title>Candidatos</title>
+
+  <link rel="stylesheet" href="lib/css/candidato.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+  <div class="main-layout">
+    <header class="main-header">
+      <a href="perfilReclutador.html" style="text-decoration: none; color: inherit;">
+        <div class="header-left">
+          <img src="lib/img/logo.jpg" alt="Logo" />
+          <span class="title">TalentCheck</span>
+        </div>
+      </a>
+      <div class="user-menu">
+        <span class="user-icon" onclick="toggleMenu()">👤</span>
+        <div id="dropdownMenu" class="dropdown">
+          <a href="#" id="logoutBtn">Cerrar sesión</a>
+          <a href="perfilRe.html">Ver Perfil</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <nav class="nav">
+          <a href="perfilReclutador.html"><button class="nav-btn"><i class="fas fa-home"></i></button></a>
+          <a href="candidatos.html"><button class="nav-btn"><i class="fas fa-user-friends"></i></button></a>
+          <a href="generarReporte.html"><button class="nav-btn"><i class="fas fa-chart-bar"></i></button></a>
+          <a href="entrevista.html"><button class="nav-btn"><i class="fas fa-comments"></i></button></a>
+        </nav>
+      </aside>
+
+      <main class="dashboard">
+        <h1>Lista de Candidatos</h1>
+
+        <div class="candidatos-lista" id="listaCandidatos"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('dropdownMenu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_I3bIIk0nfGvuDSK0nZ_JcI7ywTP_Rd8",
+      authDomain: "talentchek-t.firebaseapp.com",
+      projectId: "talentchek-t",
+      storageBucket: "talentchek-t.appspot.com",
+      messagingSenderId: "546382065526",
+      appId: "1:546382065526:web:249deb0e90ff9b358bd457",
+      measurementId: "G-WCG5D1N4ZJ",
+      databaseURL: "https://talentchek-t-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      logoutBtn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        const confirmar = confirm("¿Está seguro que desea cerrar sesión?");
+        if (!confirmar) return;
+        try {
+          await signOut(auth);
+          alert("Sesión cerrada correctamente.");
+          window.location.href = "inicioSesion.html";
+        } catch (error) {
+          alert("Error al cerrar sesión: " + error.message);
+        }
+      });
+
+      const listaCandidatosDiv = document.getElementById('listaCandidatos');
+
+      const palabrasClaveGlobal = [
+        'javascript', 'html', 'css', 'react', 'angular', 'vue', 'node', 'express', 'typescript',
+        'androidstudio', 'kotlin', 'java', 'swift', 'ios', 'react native', 'flutter', 'dart',
+        'sql', 'oracle', 'mysql', 'postgresql', 'mongodb', 'nosql', 'backup', 'restore'
+      ];
+
+      const puestos = {
+        "Desarrollador Web": [ 'html', 'css', 'javascript', 'typescript','react', 'angular', 'vue', 'node', 'express','php', 'laravel', 'bootstrap', 'tailwind','jquery', 'mysql', 'mongodb', 'git', 'github','frontend', 'backend', 'fullstack', 'api rest','responsive', 'seo', 'webpack', 'vscode'],
+        "Desarrollador Móvil": ['kotlin', 'java', 'swift', 'dart', 'objective-c','android studio', 'xcode', 'flutter', 'react native','ionic', 'cordova', 'native script','firebase', 'rest api', 'json', 'graphql','push notifications', 'google maps api','apk', 'ipa', 'gradle', 'mobile ui'],
+        "Administrador BD": ['sql', 'mysql', 'postgresql', 'oracle', 'sql server', 'sqlite', 'mariadb','mongodb', 'redis', 'cassandra', 'firebase', 'pl/sql', 'tsql', 'ddl', 'dml', 'query', 'join', 'stored procedure', 'trigger', 'view', 'index', 'backup', 'restore', 'auth', 'roles', 'permisos', 'phpmyadmin', 'pgadmin', 'sql developer', 'etl', 'data warehouse', 'normalización', 'integridad referencial'],
+      };
+
+      function asignarPuesto(texto) {
+        texto = texto.toLowerCase();
+        let maxCoincidencias = 0;
+        let puestoAsignado = "No asignado";
+
+        for (const [puesto, claves] of Object.entries(puestos)) {
+          let contador = claves.reduce((acc, palabra) => acc + (texto.includes(palabra) ? 1 : 0), 0);
+          if (contador > maxCoincidencias) {
+            maxCoincidencias = contador;
+            puestoAsignado = puesto;
+          }
+        }
+
+        return puestoAsignado;
+      }
+
+      function renderCandidatosDesdeFirebase() {
+        const candidatosRef = ref(db, 'candidatos');
+
+        onValue(candidatosRef, (snapshot) => {
+          listaCandidatosDiv.innerHTML = '';
+
+          if (!snapshot.exists()) {
+            listaCandidatosDiv.innerHTML = '<p>No hay candidatos registrados.</p>';
+            return;
+          }
+
+          const candidatos = snapshot.val();
+          Object.entries(candidatos).forEach(([uid, candidato]) => {
+            const card = document.createElement('div');
+            card.classList.add('candidato-card');
+
+            card.innerHTML = `
+              <dl>
+                <dt>${candidato.nombre}</dt>
+                <dd><strong>Puesto:</strong> <span class="puesto-asignado">${candidato.puesto || 'No asignado'}</span></dd>
+                <dd><strong>Correo:</strong> ${candidato.correo}</dd>
+                <dd><strong>Teléfono:</strong> ${candidato.telefono}</dd>
+              </dl>
+              <button class="analyze-btn">Analizar CV</button>
+              <button class="minimize-btn">Minimizar análisis</button>
+              <pre class="output" style="display:none;"></pre>
+            `;
+
+            listaCandidatosDiv.appendChild(card);
+
+            const analyzeBtn = card.querySelector('.analyze-btn');
+            const minimizeBtn = card.querySelector('.minimize-btn');
+            const output = card.querySelector('.output');
+
+            analyzeBtn.addEventListener('click', async () => {
+              try {
+                if (!candidato.pdfBase64) {
+                  output.textContent = 'No se encontró el PDF del candidato.';
+                  output.style.display = 'block';
+                  return;
+                }
+
+                // Decodifica base64 del PDF
+                const pdfData = atob(candidato.pdfBase64.split(',')[1]);
+                const uint8Array = new Uint8Array(pdfData.length);
+                for (let i = 0; i < pdfData.length; i++) {
+                  uint8Array[i] = pdfData.charCodeAt(i);
+                }
+
+                // Carga el PDF con pdfjs
+                const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+                let textoCompleto = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  const content = await page.getTextContent();
+                  textoCompleto += content.items.map(item => item.str).join(' ') + ' ';
+                }
+
+                textoCompleto = textoCompleto.toLowerCase();
+
+                // Asignar puesto basado en palabras clave
+                const puesto = asignarPuesto(textoCompleto);
+
+                // Actualizar Firebase con el puesto asignado
+                const candidatoRef = ref(db, `candidatos/${uid}`);
+                await update(candidatoRef, { puesto: puesto });
+
+                // Actualizar UI
+                card.querySelector('.puesto-asignado').textContent = puesto;
+
+                // Mostrar extracto y análisis
+                output.textContent = '=== Extracto del CV ===\n\n' + textoCompleto.slice(0, 500) + '...\n\n';
+
+                const encontradas = palabrasClaveGlobal.filter(p => textoCompleto.includes(p));
+                output.textContent += '=== Palabras clave encontradas ===\n' + (encontradas.length ? encontradas.join(', ') : 'Ninguna') + '\n\n';
+
+                const porcentajeAdecuacion = (encontradas.length / palabrasClaveGlobal.length) * 100;
+                output.textContent += '=== Porcentaje de adecuación ===\n' + `${porcentajeAdecuacion.toFixed(2)}%\n`;
+
+                output.style.display = 'block';
+
+              } catch (error) {
+                output.textContent = 'Error al analizar el PDF: ' + error.message;
+                output.style.display = 'block';
+              }
+            });
+
+            minimizeBtn.addEventListener('click', () => {
+              if (output.style.display === 'none' || output.style.display === '') {
+                output.style.display = 'block';
+                minimizeBtn.textContent = 'Minimizar análisis';
+              } else {
+                output.style.display = 'none';
+                minimizeBtn.textContent = 'Mostrar análisis';
+              }
+            });
+          });
+        });
+      }
+
+      renderCandidatosDesdeFirebase();
+    });
+  </script>
+</body>
+</html>
